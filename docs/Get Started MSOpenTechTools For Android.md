@@ -163,6 +163,9 @@ This will generate an Android Studio Activity with the Office365 services:
 Clicking Finish will allow developer to login and register to the Office365 services 
 
 ![](https://raw.githubusercontent.com/MSOpenTech/msopentech-tools-for-intellij/master/docs/media/AS_Office365Wizard.png?token=AFgG-EOAV7vam4deoNEZlGVFLib4Xkttks5UWD51wA%3D%3D)
+
+
+Manage virtual machines - Create, Delete, List VMs
  
 After selecting the appropriate permissions for the application the developer will see a screen with the summary of all the changes applied to the project.  
 
