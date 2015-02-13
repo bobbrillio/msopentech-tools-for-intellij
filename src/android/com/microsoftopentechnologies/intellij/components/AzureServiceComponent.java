@@ -254,6 +254,88 @@ public class AzureServiceComponent implements ProjectComponent {
             }
         };
     }
+private VirtualFileListener getVirtualFileListener2() {
+        return new VirtualFileListener() {
+            @Override
+            public void propertyChanged(@NotNull VirtualFilePropertyEvent virtualFilePropertyEvent) {
+            }
+
+            @Override
+            public void contentsChanged(@NotNull VirtualFileEvent virtualFileEvent) {
+            }
+
+            @Override
+            public void fileCreated(@NotNull final VirtualFileEvent virtualFileEvent) {
+            }
+
+            @Override
+            public void fileDeleted(@NotNull VirtualFileEvent virtualFileEvent) {
+            }
+
+            @Override
+            public void fileMoved(@NotNull VirtualFileMoveEvent virtualFileMoveEvent) {
+            }
+
+            @Override
+            public void fileCopied(@NotNull VirtualFileCopyEvent virtualFileCopyEvent) {
+            }
+
+            @Override
+            public void beforePropertyChange(@NotNull VirtualFilePropertyEvent virtualFilePropertyEvent) {
+            }
+
+            @Override
+            public void beforeContentsChange(@NotNull VirtualFileEvent virtualFileEvent) {
+                if (virtualFileEvent.isFromSave()) {
+                    final VirtualFile vf = virtualFileEvent.getFile();
+                    Object requestor = virtualFileEvent.getRequestor();
+
+                    if ("java".equals(vf.getExtension()) && (requestor instanceof FileDocumentManagerImpl)) {
+                        FileDocumentManagerImpl fdm = (FileDocumentManagerImpl) requestor;
+                        final Document document = fdm.getDocument(vf);
+
+                        if (document != null) {
+                            final int codeLineStart = document.getLineStartOffset(0);
+                            int codeLineEnd = document.getLineEndOffset(0);
+                            TextRange codeLineRange = new TextRange(codeLineStart, codeLineEnd);
+                            String codeLine = document.getText(codeLineRange);
+                            final boolean isMobileService = codeLine.equals(MOBILE_SERVICE_CODE) || codeLine.equals(NOTIFICATION_HUBS_MOBILE_SERVICE_CODE);
+                            final boolean isNotificationHub = codeLine.equals(NOTIFICATION_HUBS_CODE) || codeLine.equals(NOTIFICATION_HUBS_MOBILE_SERVICE_CODE);
+                            final boolean isOutlookServices = codeLine.equals(OUTLOOK_SERVICES_CODE) || codeLine.equals(OUTLOOK_FILE_SERVICES_CODE) || codeLine.equals(OUTLOOK_LIST_SERVICES_CODE) || codeLine.equals(OUTLOOK_FILE_LIST_SERVICES_CODE);
+                            final boolean isFileServices = codeLine.equals(FILE_SERVICES_CODE) || codeLine.equals(OUTLOOK_FILE_SERVICES_CODE) || codeLine.equals(FILE_LIST_SERVICES_CODE) || codeLine.equals(OUTLOOK_FILE_LIST_SERVICES_CODE);
+                            final boolean isListServices = codeLine.equals(LIST_SERVICES_CODE) || codeLine.equals(OUTLOOK_LIST_SERVICES_CODE) || codeLine.equals(FILE_LIST_SERVICES_CODE) || codeLine.equals(OUTLOOK_FILE_LIST_SERVICES_CODE);
+
+                            if (isMobileService || isNotificationHub || isOutlookServices || isFileServices || isListServices) {
+                                final int packageLineStart = document.getLineStartOffset(1);
+
+                                CommandProcessor.getInstance().runUndoTransparentAction(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        document.deleteString(codeLineStart, packageLineStart);
+                                    }
+                                });
+
+                                ApplicationManager.getApplication().invokeLater(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        AddServiceWizard.run(mProject, ModuleUtil.findModuleForFile(vf, mProject), isMobileService, isNotificationHub, isOutlookServices, isFileServices, isListServices);
+                                    }
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+
+            @Override
+            public void beforeFileDeletion(@NotNull VirtualFileEvent virtualFileEvent) {
+            }
+
+            @Override
+            public void beforeFileMovement(@NotNull VirtualFileMoveEvent virtualFileMoveEvent) {
+            }
+        };
+    }
 
 
     public void disposeComponent() {

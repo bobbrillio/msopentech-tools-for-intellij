@@ -275,6 +275,46 @@ public class ManageSubscriptionForm extends JDialog {
 
             }
         });
+ private void loadList2() {
+        final JDialog form = this;
+        final ReadOnlyCellTableModel model = (ReadOnlyCellTableModel) subscriptionTable.getModel();
 
+        while (model.getRowCount() > 0)
+            model.removeRow(0);
+
+        form.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+
+        Vector<String> vector = new Vector<String>();
+        vector.add("(loading... )");
+        vector.add("");
+        model.addRow(vector);
+
+        ApplicationManager.getApplication().invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                try {
+
+                    while (model.getRowCount() > 0)
+                        model.removeRow(0);
+
+                    subscriptionList = AzureRestAPIManager.getManager().getSubscriptionList();
+
+                    if (subscriptionList != null) {
+                        for (Subscription subs : subscriptionList) {
+                            Vector<String> row = new Vector<String>();
+                            row.add(subs.getName());
+                            row.add(subs.getId().toString());
+                            model.addRow(row);
+                        }
+                    }
+
+                    form.setCursor(Cursor.getDefaultCursor());
+                } catch (AzureCmdException e) {
+                    form.setCursor(Cursor.getDefaultCursor());
+                    UIHelper.showException("Error getting subscription list", e);
+                }
+
+            }
+        });
     }
 }
